@@ -3,19 +3,12 @@
 function validateUrl($url) {
     return filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED);
 }
-
-$urlExistsInDb = function ($url, $table, $column) use ($pdo) {
-    $sql = "SELECT id, url from $table where $column = :url limit 1;";
-    $stmt = $pdo->prepare($sql);
-    $params = array(
-        "url" => $url
-    );
-    $stmt->execute($params);
-    $result = $stmt->fetch();
-    return (empty($result)) ? false : $result;
-};
-
-function create_Short_Code($url) {
+/**
+ * Возвращает случайную полследовательность четырех из символов
+ * 
+ * @return string
+ */
+function create_Short_Code() {
     $alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
     $length = strlen($alphabet);
     $shortCode = "";
@@ -25,18 +18,13 @@ function create_Short_Code($url) {
     return $shortCode;
 }
 
-$createShortUrl = function ($url) use ($urlExistsInDb) {
-    $urlInTable = $urlExistsInDb(createShortCode($url), 'short_urls', 'short_url');
-    if ($urlInTable) {
-        return createShortUrl($url);
-    } 
-    else {
-        /* $sql = "insert into short_urls set short_url = $urlInTable, id_url = ". $urlExistsInDb($url, 'urls', 'url')['id'] .";"; */
-        /* $stmt = $pdo->prepare($sql); */
-        return $urlInTable;
-    }
-};
-
+/**
+ * Добавить url в таблицу
+ * 
+ * @param PDO $pdo 
+ * @param string $url 
+ * @param string $table Наименование таблицы
+ */
 function add_Url_In_Table(PDO $pdo, $url, $table) {
     $sql = "INSERT INTO $table SET url = :url";
     $stmt = $pdo->prepare($sql);
@@ -44,6 +32,19 @@ function add_Url_In_Table(PDO $pdo, $url, $table) {
     $stmt->execute($params);
 }
 
+/**
+ * Получить значение из таблицы
+ * 
+ * Формируется sql запрос
+ *
+ * @param PDO $pdo 
+ * @param string $field 
+ * @param string $table 
+ * @param string $column 
+ * @param string $param 
+ * @param string $url Параметр параметр функции
+ * @return string
+ */
 function get_val_From_Table(PDO $pdo, $field, $table, $column, $param) {
     $sql = "select $field from $table where $column = :param";
     $stmt = $pdo->prepare($sql);
@@ -53,16 +54,24 @@ function get_val_From_Table(PDO $pdo, $field, $table, $column, $param) {
     return $result ? array_values($result)[0] : null;
 }
 
+/**
+ * Краткое описание функции
+ * 
+ * Подробное описание функции, если необходимо 
+ *
+ * @param string $url Параметр параметр функции
+ * @return string
+ */
 function add_Short_Url_In_Table(PDO $pdo, $url, $table, $shortTable) {
-    $id = get_id_Url_From_Table($pdo, $url, $table);
+    $id = get_val_From_Table($pdo, 'id', $table, 'url', $url);
     $sql = "insert into $shortTable set id_url = $id, short_url = :short_code"; 
     $stmt = $pdo->prepare($sql);
     try {
-        $short_code = create_Short_Code($url);
+        $short_code = create_Short_Code();
         $params = array("short_code" => $short_code);
         $stmt->execute($params);
     } catch (Exception $e) {
-        $short_code = create_Short_Code($url);
+        $short_code = create_Short_Code();
         $params = array("short_code" => $short_code);
         $stmt->execute($params);
     }
