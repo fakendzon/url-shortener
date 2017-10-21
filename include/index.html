@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title>URL Shortener</title>
+        <script>
+            function req (url) {
+                var xmlhttp = new XMLHttpRequest();
+                xmlhttp.onreadystatechange = function() {
+                    if (this.readyState == 4 && this.status == 200) {
+                        document.getElementById("txtHint").innerHTML = this.responseText;
+                    }
+                };
+                xmlhttp.open("GET", "public/submit.php?q=" + url, true);
+                xmlhttp.send();
+            }
+        </script>
+    </head>
+    <body>
+        <label for="url">Enter URL (http://example.com):</label>
+        <input type="text" name="url" id="url">
+        <input type="button" value="Submit" onclick="req(url.value)">
+        <p>Suggestions: <span id="txtHint"></span></p>
+    </body>
+</html>
