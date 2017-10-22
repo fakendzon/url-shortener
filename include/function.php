@@ -4,7 +4,7 @@ function validateUrl($url) {
     return filter_var($url, FILTER_VALIDATE_URL, FILTER_FLAG_HOST_REQUIRED);
 }
 /**
- * Возвращает случайную полследовательность четырех из символов
+ * Возвращает случайную полследовательность из четырех символов
  * 
  * @return string
  */
@@ -35,14 +35,11 @@ function add_Url_In_Table(PDO $pdo, $url, $table) {
 /**
  * Получить значение из таблицы
  * 
- * Формируется sql запрос
- *
  * @param PDO $pdo 
  * @param string $field 
  * @param string $table 
  * @param string $column 
  * @param string $param 
- * @param string $url Параметр параметр функции
  * @return string
  */
 function get_val_From_Table(PDO $pdo, $field, $table, $column, $param) {
@@ -51,29 +48,38 @@ function get_val_From_Table(PDO $pdo, $field, $table, $column, $param) {
     $params = array("param" => $param);
     $stmt->execute($params);
     $result = $stmt->fetch();
+    // $result - это ассоциативный массив, необходимо значение первого элемента
     return $result ? array_values($result)[0] : null;
 }
 
 /**
- * Краткое описание функции
+ * Добавить короткий код в таблицу
  * 
- * Подробное описание функции, если необходимо 
+ * Алгоритм работы:
+ * - получить id, введенного url
+ * - подготовить запрос в базу, который вставит полученный id и короткий код в таблицу коротких url
+ * - создаем короткий код, отправляем его в sql запрос, если такой код уже был в таблице, получаем exception (так как поле уникальное)
+ *   будем получать exception до тех пор пока код не станет уникальным
  *
- * @param string $url Параметр параметр функции
+ *
+ * @param PDO $pdo 
+ * @param string $url 
+ * @param string $table 
+ * @param string $shortTable 
  * @return string
  */
 function add_Short_Url_In_Table(PDO $pdo, $url, $table, $shortTable) {
     $id = get_val_From_Table($pdo, 'id', $table, 'url', $url);
     $sql = "insert into $shortTable set id_url = $id, short_url = :short_code"; 
     $stmt = $pdo->prepare($sql);
-    try {
-        $short_code = create_Short_Code();
-        $params = array("short_code" => $short_code);
-        $stmt->execute($params);
-    } catch (Exception $e) {
-        $short_code = create_Short_Code();
-        $params = array("short_code" => $short_code);
-        $stmt->execute($params);
+    $i = 0;
+    while ($i == 0) {
+        try {
+            $short_code = create_Short_Code();
+            $params = array("short_code" => $short_code);
+            $stmt->execute($params);
+            $i++;
+        } catch (Exception $e) {}
     }
     return $short_code;
 }

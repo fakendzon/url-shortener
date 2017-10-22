@@ -13,5 +13,3 @@ create table if not exists short_urls (
     )
     ENGINE=InnoDB;
 
-/* insert into urls set url='https://google.com'; */
-/* insert into urls set url='https://yandex.ru'; */

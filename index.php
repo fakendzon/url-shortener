@@ -7,6 +7,7 @@ include 'include/function.php';
 $arReq = explode('/', $_SERVER['REQUEST_URI']);
 $req = end($arReq);
 
+
 if ($req) {
 
     //Проверка полученного значения на соответсвие формату короткого кода
@@ -21,7 +22,6 @@ if ($req) {
             header("Location: ". $real_url);
             exit();
         }
-    } else {
-        include 'include/index.html';
     }
 }
+include 'include/index.html';
